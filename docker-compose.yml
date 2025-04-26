@@ -1,0 +1,38 @@
+version: '3'
+
+services:
+  public_web:
+    build: 
+      context: .
+      dockerfile: docker/public.Dockerfile
+    ports:
+      - "80:80"
+    volumes:
+      - ./src/public:/var/www/html
+
+  internal_web:
+    build:
+      context: .
+      dockerfile: docker/internal.Dockerfile
+    ports:
+      - "8080:80"
+    volumes:
+      - ./src/internal:/var/www/html
+    depends_on:
+      - internal_mysql_db
+    environment:
+      - MYSQL_HOST=internal_mysql_db
+      - MYSQL_USER=internal_user
+      - MYSQL_PASSWORD=S3cr3t_P@ssw0rd!
+      - MYSQL_DATABASE=internal_db
+
+  internal_mysql_db:
+    image: mysql:5.7
+    container_name: advanced_web_internal_mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpass
+      - MYSQL_DATABASE=internal_db
+      - MYSQL_USER=internal_user
+      - MYSQL_PASSWORD=S3cr3t_P@ssw0rd!
+    volumes:
+      - ./docker/init.sql:/docker-entrypoint-initdb.d/init.sql 
